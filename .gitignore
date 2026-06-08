@@ -13,4 +13,4 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-diceware-pl.txt
+/diceware-pl.txt
