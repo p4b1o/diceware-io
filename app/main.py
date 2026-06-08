@@ -1,0 +1,309 @@
+from datetime import datetime
+from pathlib import Path
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+BASE_DIR = Path(__file__).resolve().parent
+
+app = FastAPI(
+    title="CyberGuru Diceware",
+    description="Polski generator haseł metodą Diceware",
+    version="1.0.0",
+)
+
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
+
+SUPPORTED_LANGS = {"pl", "en"}
+
+WORDLISTS = {
+    "pl": {
+        "url": "/static/wordlists/diceware-pl.txt",
+        "name": "diceware-pl.txt",
+        "locale": "pl-PL",
+    },
+    "en": {
+        "url": "/static/wordlists/diceware-en.txt",
+        "name": "diceware-en.txt",
+        "locale": "en-US",
+    },
+}
+
+TRANSLATIONS = {
+    "pl": {
+        "meta_description": "CyberGuru Diceware — polski generator haseł metodą Diceware. Hasła generowane lokalnie w przeglądarce.",
+        "title_suffix": "Polski generator haseł Diceware",
+        "brand_subtitle": "Polski generator haseł metodą Diceware",
+        "nav_how": "Jak to działa?",
+        "nav_security": "Bezpieczeństwo",
+        "nav_source": "Kod źródłowy",
+        "copy_password": "Kopiuj hasło",
+        "badge": "DICEWARE.IO",
+        "hero_title_main": "Silne hasło",
+        "hero_title_accent": "z polskich słów.",
+        "hero_desc_before": "CyberGuru Diceware generuje długie, zapamiętywalne hasła z polskich słów. Każde hasło powstaje",
+        "hero_desc_strong": "lokalnie w Twojej przeglądarce",
+        "hero_desc_after": "— nic nie trafia na serwer.",
+        "feature_local_title": "Lokalnie",
+        "feature_local_desc": "Hasło nie opuszcza Twojego urządzenia.",
+        "feature_diceware_title": "Diceware",
+        "feature_diceware_desc": "Sprawdzona metoda losowania słów.",
+        "feature_secure_title": "Bezpiecznie",
+        "feature_secure_desc": "Wysoka entropia, trudne do złamania.",
+        "your_password": "Twoje hasło",
+        "loading_wordlist": "Ładowanie słownika…",
+        "entropy": "Entropia",
+        "quality": "Jakość",
+        "word_count": "Liczba słów",
+        "dictionary": "Słownik",
+        "generate": "Generuj nowe hasło",
+        "show_hide": "Pokaż / ukryj",
+        "export_txt": "Eksportuj .txt",
+        "privacy_note": "Hasło nie opuszcza Twojego urządzenia. Generowanie odbywa się w 100% lokalnie.",
+        "settings_title": "Ustawienia hasła",
+        "separator": "Separator",
+        "space": "Spacja",
+        "hyphen": "Myślnik",
+        "dot": "Kropka",
+        "none": "Brak",
+        "custom": "Własny",
+        "custom_separator": "Własny separator",
+        "casing": "Wielkość liter",
+        "title_case": "Tytułowe",
+        "lower_case": "małe",
+        "upper_case": "DUŻE",
+        "random_case": "Losowe",
+        "add_digit": "Dodaj cyfrę",
+        "add_special": "Dodaj znak specjalny",
+        "crack_algorithm": "Algorytm / hash do estymacji",
+        "crack_algorithm_hint": "Szacunek dla ataku offline. Rzeczywisty czas zależy od sprzętu, słownika i strategii ataku.",
+        "crack_time": "Estimated time to crack",
+        "entropy_title": "Entropia — co to znaczy?",
+        "entropy_desc": "Entropia mierzy „losowość” hasła w bitach. Im więcej bitów, tym trudniej je zgadnąć metodą brute-force.",
+        "entropy_column": "Entropia",
+        "rating_column": "Ocena",
+        "weak_bits": "< 50 bitów",
+        "medium_bits": "50–70 bitów",
+        "good_bits": "70–90 bitów",
+        "strong_bits": "90+ bitów",
+        "weak": "Słabe",
+        "medium": "Średnie",
+        "good": "Dobre",
+        "strong": "Bardzo mocne",
+        "how_title": "Jak to działa?",
+        "step_1": "Przeglądarka pobiera plik słownika z serwera (tylko raz).",
+        "step_2_before": "Losowanie odbywa się przez",
+        "step_3": "Wylosowane słowa łączone są według Twoich ustawień.",
+        "step_4": "Hasło nigdy nie jest wysyłane na serwer — pozostaje na urządzeniu.",
+        "security_title": "Bezpieczne założenia",
+        "security_local": "Działa w pełni lokalnie",
+        "security_no_server": "Nic nie wysyłamy na serwer",
+        "security_no_history": "Nie zapisujemy historii",
+        "security_crypto": "Kryptograficznie bezpieczne losowanie",
+        "security_offline": "Działa offline po pierwszym załadowaniu",
+        "contact": "sklep@pawelhordynski.com",
+        "lang_pl": "Polski",
+        "lang_en": "English",
+    },
+    "en": {
+        "meta_description": "CyberGuru Diceware — an English Diceware passphrase generator. Passphrases are generated locally in your browser.",
+        "title_suffix": "English Diceware passphrase generator",
+        "brand_subtitle": "English Diceware passphrase generator",
+        "nav_how": "How it works",
+        "nav_security": "Security",
+        "nav_source": "Source code",
+        "copy_password": "Copy passphrase",
+        "badge": "DICEWARE.IO",
+        "hero_title_main": "Strong passphrases",
+        "hero_title_accent": "from real words.",
+        "hero_desc_before": "CyberGuru Diceware generates long, memorable passphrases from English words. Every passphrase is created",
+        "hero_desc_strong": "locally in your browser",
+        "hero_desc_after": "— nothing is sent to the server.",
+        "feature_local_title": "Local",
+        "feature_local_desc": "Your passphrase never leaves your device.",
+        "feature_diceware_title": "Diceware",
+        "feature_diceware_desc": "A proven word-randomization method.",
+        "feature_secure_title": "Secure",
+        "feature_secure_desc": "High entropy, hard to crack.",
+        "your_password": "Your passphrase",
+        "loading_wordlist": "Loading wordlist…",
+        "entropy": "Entropy",
+        "quality": "Quality",
+        "word_count": "Word count",
+        "dictionary": "Wordlist",
+        "generate": "Generate new passphrase",
+        "show_hide": "Show / hide",
+        "export_txt": "Export .txt",
+        "privacy_note": "Your passphrase never leaves your device. Generation happens 100% locally.",
+        "settings_title": "Passphrase settings",
+        "separator": "Separator",
+        "space": "Space",
+        "hyphen": "Hyphen",
+        "dot": "Dot",
+        "none": "None",
+        "custom": "Custom",
+        "custom_separator": "Custom separator",
+        "casing": "Letter case",
+        "title_case": "Title Case",
+        "lower_case": "lowercase",
+        "upper_case": "UPPERCASE",
+        "random_case": "Random",
+        "add_digit": "Add digit",
+        "add_special": "Add special character",
+        "crack_algorithm": "Algorithm / hash for estimate",
+        "crack_algorithm_hint": "Offline-attack estimate. Real time depends on hardware, dictionaries, and attack strategy.",
+        "crack_time": "Estimated time to crack",
+        "entropy_title": "Entropy — what does it mean?",
+        "entropy_desc": "Entropy measures password randomness in bits. The more bits, the harder it is to guess by brute force.",
+        "entropy_column": "Entropy",
+        "rating_column": "Rating",
+        "weak_bits": "< 50 bits",
+        "medium_bits": "50–70 bits",
+        "good_bits": "70–90 bits",
+        "strong_bits": "90+ bits",
+        "weak": "Weak",
+        "medium": "Medium",
+        "good": "Good",
+        "strong": "Very strong",
+        "how_title": "How it works",
+        "step_1": "The browser downloads the wordlist file from the server (once).",
+        "step_2_before": "Randomness comes from",
+        "step_3": "The selected words are joined according to your settings.",
+        "step_4": "The passphrase is never sent to the server — it stays on your device.",
+        "security_title": "Security assumptions",
+        "security_local": "Runs fully locally",
+        "security_no_server": "Nothing is sent to the server",
+        "security_no_history": "No history is stored",
+        "security_crypto": "Cryptographically secure randomness",
+        "security_offline": "Works offline after first load",
+        "contact": "sklep@pawelhordynski.com",
+        "lang_pl": "Polski",
+        "lang_en": "English",
+    },
+}
+
+JS_LABELS = {
+    "pl": {
+        "bits": "bitów",
+        "words": "słów",
+        "copied": "Skopiowano",
+        "copyPassword": "Kopiuj hasło",
+        "wordlistError": "Błąd ładowania słownika. Sprawdź połączenie.",
+        "emptyWordlist": "Słownik jest pusty",
+        "qualityWeak": "Słabe",
+        "qualityMedium": "Średnie",
+        "qualityGood": "Dobra",
+        "qualityStrong": "Bardzo mocne",
+        "entropyWords": "słowa",
+        "entropyDigit": "cyfra",
+        "entropySpecial": "znak specjalny",
+        "entropyCase": "losowa wielkość liter",
+        "entropySeparator": "separator",
+        "entropyCasingFormat": "format wielkości liter",
+        "crackForever": "praktycznie nieskończony",
+        "crackInstant": "mniej niż sekunda",
+        "crackBillionYears": "mld lat",
+        "crackYears": "lat",
+        "crackMonths": "mies.",
+        "crackDays": "dni",
+        "crackHours": "godz.",
+        "crackMinutes": "min",
+        "crackSeconds": "s",
+        "downloadFile": "cyberguru-diceware-haslo.txt",
+    },
+    "en": {
+        "bits": "bits",
+        "words": "words",
+        "copied": "Copied",
+        "copyPassword": "Copy passphrase",
+        "wordlistError": "Could not load the wordlist. Check your connection.",
+        "emptyWordlist": "Wordlist is empty",
+        "qualityWeak": "Weak",
+        "qualityMedium": "Medium",
+        "qualityGood": "Good",
+        "qualityStrong": "Very strong",
+        "entropyWords": "words",
+        "entropyDigit": "digit",
+        "entropySpecial": "special character",
+        "entropyCase": "random letter case",
+        "entropySeparator": "separator",
+        "entropyCasingFormat": "letter-case format",
+        "crackForever": "effectively infinite",
+        "crackInstant": "less than a second",
+        "crackBillionYears": "billion years",
+        "crackYears": "years",
+        "crackMonths": "months",
+        "crackDays": "days",
+        "crackHours": "hours",
+        "crackMinutes": "min",
+        "crackSeconds": "s",
+        "downloadFile": "cyberguru-diceware-passphrase.txt",
+    },
+}
+
+
+def resolve_language(request: Request) -> str:
+    query_lang = request.query_params.get("lang", "").lower()
+    if query_lang in SUPPORTED_LANGS:
+        return query_lang
+
+    country_headers = (
+        "cf-ipcountry",
+        "x-vercel-ip-country",
+        "x-country-code",
+        "x-appengine-country",
+    )
+    country = next(
+        (request.headers.get(header, "").upper() for header in country_headers if request.headers.get(header)),
+        "",
+    )
+    if country:
+        return "pl" if country == "PL" else "en"
+
+    host = request.client.host if request.client else ""
+    if host in {"127.0.0.1", "::1", "localhost"}:
+        return "pl"
+
+    accept_language = request.headers.get("accept-language", "").lower()
+    return "pl" if accept_language.startswith("pl") else "en"
+
+
+def make_lang_url(request: Request, lang: str) -> str:
+    params = dict(request.query_params)
+    params["lang"] = lang
+    query = "&".join(f"{key}={value}" for key, value in params.items())
+    return f"{request.url.path}?{query}"
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request) -> HTMLResponse:
+    lang = resolve_language(request)
+    t = TRANSLATIONS[lang]
+    wordlist = WORDLISTS[lang]
+    js_config = {
+        "lang": lang,
+        "locale": wordlist["locale"],
+        "wordlistUrl": wordlist["url"],
+        "dictName": wordlist["name"],
+        "labels": JS_LABELS[lang],
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "title": "CyberGuru Diceware",
+            "year": datetime.now().year,
+            "lang": lang,
+            "t": t,
+            "wordlist": wordlist,
+            "js_config": js_config,
+            "lang_urls": {
+                "pl": make_lang_url(request, "pl"),
+                "en": make_lang_url(request, "en"),
+            },
+        },
+    )
