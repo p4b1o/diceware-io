@@ -1,8 +1,8 @@
 import type { Lang } from "$lib/types/supported-langs";
 
-export type Translation = Record<string, string>;
-
-export const TRANSLATIONS: Record<Lang, Translation> = {
+export type TranslationKey = keyof typeof TRANSLATIONS[Lang];
+export type Translation = Record<TranslationKey, string>;
+export const TRANSLATIONS = {
     pl: {
         meta_description:
             'CyberGuru Diceware — polski generator haseł metodą Diceware. Hasła generowane lokalnie w przeglądarce.',
@@ -81,6 +81,32 @@ export const TRANSLATIONS: Record<Lang, Translation> = {
         contact: 'sklep@pawelhordynski.com',
         lang_pl: 'Polski',
         lang_en: 'English',
+        bits: 'bitów',
+        words: 'słów',
+        copied: 'Skopiowano',
+        copyPassword: 'Kopiuj hasło',
+        wordlistError: 'Błąd ładowania słownika. Sprawdź połączenie.',
+        emptyWordlist: 'Słownik jest pusty',
+        qualityWeak: 'Słabe',
+        qualityMedium: 'Średnie',
+        qualityGood: 'Dobra',
+        qualityStrong: 'Bardzo mocne',
+        entropyWords: 'słowa',
+        entropyDigit: 'cyfra',
+        entropySpecial: 'znak specjalny',
+        entropyCase: 'losowa wielkość liter',
+        entropySeparator: 'separator',
+        entropyCasingFormat: 'format wielkości liter',
+        crackForever: 'praktycznie nieskończony',
+        crackInstant: 'mniej niż sekunda',
+        crackBillionYears: 'mld lat',
+        crackYears: 'lat',
+        crackMonths: 'mies.',
+        crackDays: 'dni',
+        crackHours: 'godz.',
+        crackMinutes: 'min',
+        crackSeconds: 's',
+        downloadFile: 'cyberguru-diceware-haslo.txt',
     },
     en: {
         meta_description:
@@ -160,40 +186,6 @@ export const TRANSLATIONS: Record<Lang, Translation> = {
         contact: 'sklep@pawelhordynski.com',
         lang_pl: 'Polski',
         lang_en: 'English',
-    },
-} as const;
-
-
-export const JS_LABELS: Record<Lang, Record<string, string>> = {
-    pl: {
-        bits: 'bitów',
-        words: 'słów',
-        copied: 'Skopiowano',
-        copyPassword: 'Kopiuj hasło',
-        wordlistError: 'Błąd ładowania słownika. Sprawdź połączenie.',
-        emptyWordlist: 'Słownik jest pusty',
-        qualityWeak: 'Słabe',
-        qualityMedium: 'Średnie',
-        qualityGood: 'Dobra',
-        qualityStrong: 'Bardzo mocne',
-        entropyWords: 'słowa',
-        entropyDigit: 'cyfra',
-        entropySpecial: 'znak specjalny',
-        entropyCase: 'losowa wielkość liter',
-        entropySeparator: 'separator',
-        entropyCasingFormat: 'format wielkości liter',
-        crackForever: 'praktycznie nieskończony',
-        crackInstant: 'mniej niż sekunda',
-        crackBillionYears: 'mld lat',
-        crackYears: 'lat',
-        crackMonths: 'mies.',
-        crackDays: 'dni',
-        crackHours: 'godz.',
-        crackMinutes: 'min',
-        crackSeconds: 's',
-        downloadFile: 'cyberguru-diceware-haslo.txt',
-    },
-    en: {
         bits: 'bits',
         words: 'words',
         copied: 'Copied',

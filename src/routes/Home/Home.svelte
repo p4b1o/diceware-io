@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { isSupportedLang, type Lang } from '$lib/types/supported-langs';
+  import { type Lang } from '$lib/types/supported-langs';
   import { onMount } from 'svelte';
-  import { JS_LABELS, TRANSLATIONS } from '../../lib/translations';
   import { appTitle } from '$lib/constans/app';
   import { translationsStore } from '$lib/stores/translations.store';
     import { currentLang } from '$lib/stores/current-lang.store';
+    import Generator from './ui/Generator.svelte';
 
   type WordlistConfig = { url: string; name: string; locale: string };
 
@@ -35,7 +35,7 @@
       locale: wordlist.locale,
       wordlistUrl: wordlist.url,
       dictName: wordlist.name,
-      labels: JS_LABELS[$currentLang],
+      labels: $translationsStore,
     };
 
     (window as any).CYBERGURU_CONFIG = jsConfig;
@@ -79,6 +79,8 @@
           {$translationsStore.hero_desc_before} <strong>{$translationsStore.hero_desc_strong}</strong> {$translationsStore.hero_desc_after}
         </p>
 
+        <Generator />
+
         <div class="generator-card" id="generator">
           <div class="generator-card__glow" aria-hidden="true"></div>
           <div class="generator-card__inner">
@@ -111,7 +113,9 @@
               </div>
               <div class="stat">
                 <span class="stat__label">{$translationsStore.word_count}</span>
-                <span class="stat__value" id="stat-words">7 {JS_LABELS[$currentLang].words}</span>
+                <span class="stat__value" id="stat-words">
+                  7 {$translationsStore.words}
+                </span>
               </div>
               <div class="stat">
                 <span class="stat__label">{$translationsStore.dictionary}</span>
