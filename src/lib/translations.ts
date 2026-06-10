@@ -1,6 +1,6 @@
 import type { Lang } from "$lib/types/supported-langs";
 
-type Translation = Record<string, string>;
+export type Translation = Record<string, string>;
 
 export const TRANSLATIONS: Record<Lang, Translation> = {
     pl: {

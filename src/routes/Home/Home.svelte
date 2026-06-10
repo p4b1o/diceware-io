@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { isSupportedLang, type Lang } from '$lib/types/supported-langs';
+  import { isSupportedLang, type Lang } from '$lib/types/supported-langs';
   import { onMount } from 'svelte';
-    import { JS_LABELS, TRANSLATIONS } from './translations';
+  import { JS_LABELS, TRANSLATIONS } from '../../lib/translations';
+  import { appTitle } from '$lib/constans/app';
+  import { translationsStore } from '$lib/stores/translations.store';
+    import { currentLang } from '$lib/stores/current-lang.store';
 
-  const APP_TITLE = 'CyberGuru Diceware';
-  
-  
   type WordlistConfig = { url: string; name: string; locale: string };
 
   const WORDLISTS: Record<Lang, WordlistConfig> = {
@@ -21,59 +21,21 @@
     },
   }; 
 
-  function resolveLanguage(queryLang: string | null): Lang {
-    if (isSupportedLang(queryLang)) {
-      return queryLang;
-    }
-
-    if (typeof window === 'undefined') {
-      return 'pl';
-    }
-
-    const hostname = window.location.hostname;
-    if (hostname === '127.0.0.1' || hostname === '::1' || hostname === 'localhost') {
-      return 'pl';
-    }
-
-    const language = navigator.language?.toLowerCase() || '';
-    return language.startsWith('pl') ? 'pl' : 'en';
-  }
-
-  function buildLangUrl(currentUrl: URL, targetLang: Lang) {
-    const url = new URL(currentUrl.href);
-    url.searchParams.set('lang', targetLang);
-    const query = url.searchParams.toString();
-    return `${url.pathname}${query ? `?${query}` : ''}`;
-  }
-
-  let lang: Lang = 'pl';
-  let t = TRANSLATIONS.pl;
   let wordlist = WORDLISTS.pl;
-  let langUrls = {
-    pl: '/?lang=pl',
-    en: '/?lang=en',
-  };
 
   onMount(() => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const currentUrl = new URL(window.location.href);
-    lang = resolveLanguage(currentUrl.searchParams.get('lang'));
-    t = TRANSLATIONS[lang];
-    wordlist = WORDLISTS[lang];
-    langUrls = {
-      pl: buildLangUrl(currentUrl, 'pl'),
-      en: buildLangUrl(currentUrl, 'en'),
-    };
+    wordlist = WORDLISTS[$currentLang];
 
     const jsConfig = {
-      lang,
+      lang: $currentLang,
       locale: wordlist.locale,
       wordlistUrl: wordlist.url,
       dictName: wordlist.name,
-      labels: JS_LABELS[lang],
+      labels: JS_LABELS[$currentLang],
     };
 
     (window as any).CYBERGURU_CONFIG = jsConfig;
@@ -89,86 +51,41 @@
 </script>
 
 <svelte:head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content={t.meta_description} />
-  <meta name="theme-color" content="#000000" />
-  <title>{APP_TITLE} — {t.title_suffix}</title>
+  <meta name="description" content={$translationsStore.meta_description} />
+  
+  <title>{appTitle} — {$translationsStore.title_suffix}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
-  <link rel="stylesheet" href="/css/style.css?v=compact-v6" />
   <link rel="icon" href="/img/avatar.jpg?v=black-logo-20260607" type="image/jpeg" />
 </svelte:head>
 
-<div class="page-bg" aria-hidden="true"></div>
 
-<header class="header">
-  <div class="container header__inner">
-    <a href="/" class="brand">
-      <img src="/img/avatar.jpg?v=black-logo-20260607" alt="CyberGuru Diceware" class="brand__avatar" />
-      <div class="brand__text">
-        <span class="brand__title">CyberGuru <span class="brand__accent">Diceware</span></span>
-        <span class="brand__subtitle">{t.brand_subtitle}</span>
-      </div>
-    </a>
-    <nav class="nav" aria-label="Nawigacja">
-      <a href="#how-it-works" class="nav__link">{t.nav_how}</a>
-      <a href="#security" class="nav__link">{t.nav_security}</a>
-      <a
-        href="https://github.com/p4b1o/diceware-io"
-        class="nav__link nav__link--github"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-          ><path
-            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 1.005-.315 3.3 1.23 3.3 1.23a9.192 9.192 0 0 1 2.46-.33c.84 0 1.68.12 2.46.33 0 0 2.295-1.545 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"
-          /></svg>
-        {t.nav_source}
-      </a>
-      <div class="language-switcher" aria-label="Language">
-        <a href={langUrls.pl} class="language-switcher__link" class:active={lang === 'pl'} aria-label={t.lang_pl} title={t.lang_pl}>
-          🇵🇱
-        </a>
-        <a href={langUrls.en} class="language-switcher__link" class:active={lang === 'en'} aria-label={t.lang_en} title={t.lang_en}>
-          🇬🇧
-        </a>
-      </div>
-    </nav>
-    <button type="button" class="btn btn--outline btn--header" id="btn-copy-header">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
-        ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-      {t.copy_password}
-    </button>
-    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-</header>
 
-<main>
+
+
+
   <section class="hero">
     <div class="container hero__grid">
       <div class="hero__content">
-        <span class="badge">{t.badge}</span>
+        <span class="badge">{$translationsStore.badge}</span>
         <h1 class="hero__title">
-          {t.hero_title_main}<br /><span class="hero__accent">{t.hero_title_accent}</span>
+          {$translationsStore.hero_title_main}<br /><span class="hero__accent">{$translationsStore.hero_title_accent}</span>
         </h1>
         <p class="hero__desc">
-          {t.hero_desc_before} <strong>{t.hero_desc_strong}</strong> {t.hero_desc_after}
+          {$translationsStore.hero_desc_before} <strong>{$translationsStore.hero_desc_strong}</strong> {$translationsStore.hero_desc_after}
         </p>
 
         <div class="generator-card" id="generator">
           <div class="generator-card__glow" aria-hidden="true"></div>
           <div class="generator-card__inner">
-            <h2 class="generator-card__label">{t.your_password}</h2>
+            <h2 class="generator-card__label">{$translationsStore.your_password}</h2>
             <div class="password-display">
-              <p class="password-display__text" id="password-output" aria-live="polite">{t.loading_wordlist}</p>
-              <button type="button" class="password-display__copy" id="btn-copy-inline" aria-label={t.copy_password}>
+              <p class="password-display__text" id="password-output" aria-live="polite">{$translationsStore.loading_wordlist}</p>
+              <button type="button" class="password-display__copy" id="btn-copy-inline" aria-label={$translationsStore.copy_password}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
               </button>
@@ -176,11 +93,11 @@
 
             <div class="stats">
               <div class="stat">
-                <span class="stat__label">{t.entropy}</span>
+                <span class="stat__label">{$translationsStore.entropy}</span>
                 <span class="stat__value stat__value--accent" id="stat-entropy">—</span>
               </div>
               <div class="stat">
-                <span class="stat__label">{t.quality}</span>
+                <span class="stat__label">{$translationsStore.quality}</span>
                 <div class="stat__quality">
                   <span class="stat__value" id="stat-quality">—</span>
                   <div class="quality-bar" id="quality-bar" aria-hidden="true">
@@ -193,17 +110,17 @@
                 </div>
               </div>
               <div class="stat">
-                <span class="stat__label">{t.word_count}</span>
-                <span class="stat__value" id="stat-words">7 {JS_LABELS[lang].words}</span>
+                <span class="stat__label">{$translationsStore.word_count}</span>
+                <span class="stat__value" id="stat-words">7 {JS_LABELS[$currentLang].words}</span>
               </div>
               <div class="stat">
-                <span class="stat__label">{t.dictionary}</span>
+                <span class="stat__label">{$translationsStore.dictionary}</span>
                 <span class="stat__value stat__value--small" id="stat-dict">{wordlist.name}</span>
               </div>
             </div>
             <p class="entropy-breakdown" id="entropy-breakdown" aria-live="polite"></p>
             <div class="crack-estimate" aria-live="polite">
-              <span class="crack-estimate__label">{t.crack_time}</span>
+              <span class="crack-estimate__label">{$translationsStore.crack_time}</span>
               <strong class="crack-estimate__value" id="crack-time">—</strong>
               <span class="crack-estimate__meta" id="crack-algorithm">—</span>
             </div>
@@ -212,29 +129,29 @@
               <button type="button" class="btn btn--primary" id="btn-generate">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   ><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1" fill="currentColor" /><circle cx="16" cy="8" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="8" cy="16" r="1" fill="currentColor" /><circle cx="16" cy="16" r="1" fill="currentColor" /></svg>
-                {t.generate}
+                {$translationsStore.generate}
               </button>
               <button type="button" class="btn btn--outline" id="btn-copy">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                {t.copy_password}
+                {$translationsStore.copy_password}
               </button>
               <button type="button" class="btn btn--outline" id="btn-toggle">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   ><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                {t.show_hide}
+                {$translationsStore.show_hide}
               </button>
               <button type="button" class="btn btn--outline" id="btn-export">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                {t.export_txt}
+                {$translationsStore.export_txt}
               </button>
             </div>
 
             <p class="privacy-note">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 ><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-              {t.privacy_note}
+              {$translationsStore.privacy_note}
             </p>
           </div>
         </div>
@@ -246,8 +163,8 @@
                 ><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
             </div>
             <div>
-              <strong>{t.feature_local_title}</strong>
-              <span>{t.feature_local_desc}</span>
+              <strong>{$translationsStore.feature_local_title}</strong>
+              <span>{$translationsStore.feature_local_desc}</span>
             </div>
           </div>
           <div class="feature">
@@ -256,8 +173,8 @@
                 ><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8" cy="8" r="1" fill="currentColor" /><circle cx="16" cy="8" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="8" cy="16" r="1" fill="currentColor" /><circle cx="16" cy="16" r="1" fill="currentColor" /></svg>
             </div>
             <div>
-              <strong>{t.feature_diceware_title}</strong>
-              <span>{t.feature_diceware_desc}</span>
+              <strong>{$translationsStore.feature_diceware_title}</strong>
+              <span>{$translationsStore.feature_diceware_desc}</span>
             </div>
           </div>
           <div class="feature">
@@ -266,73 +183,73 @@
                 ><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
             </div>
             <div>
-              <strong>{t.feature_secure_title}</strong>
-              <span>{t.feature_secure_desc}</span>
+              <strong>{$translationsStore.feature_secure_title}</strong>
+              <span>{$translationsStore.feature_secure_desc}</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="panel panel--settings" id="settings">
-        <h2 class="panel__title">{t.settings_title}</h2>
+        <h2 class="panel__title">{$translationsStore.settings_title}</h2>
 
         <div class="setting">
-          <label class="setting__label" for="word-count">{t.word_count}</label>
+          <label class="setting__label" for="word-count">{$translationsStore.word_count}</label>
           <div class="word-count-control">
-            <button type="button" class="stepper" id="btn-minus" aria-label={`${t.word_count} −`}>−</button>
+            <button type="button" class="stepper" id="btn-minus" aria-label={`${$translationsStore.word_count} −`}>−</button>
             <input type="range" id="word-count" min="3" max="15" value="7" class="slider" />
             <span class="word-count-value" id="word-count-value">7</span>
-            <button type="button" class="stepper" id="btn-plus" aria-label={`${t.word_count} +`}>+</button>
+            <button type="button" class="stepper" id="btn-plus" aria-label={`${$translationsStore.word_count} +`}>+</button>
           </div>
         </div>
 
         <div class="setting">
-          <span class="setting__label">{t.separator}</span>
+          <span class="setting__label">{$translationsStore.separator}</span>
           <div class="toggle-group" role="group" aria-label="Separator">
-            <button type="button" class="toggle-btn active" data-separator=" ">{t.space}</button>
-            <button type="button" class="toggle-btn" data-separator="-">{t.hyphen}</button>
-            <button type="button" class="toggle-btn" data-separator=".">{t.dot}</button>
-            <button type="button" class="toggle-btn" data-separator="">{t.none}</button>
-            <button type="button" class="toggle-btn" data-separator="custom">{t.custom}</button>
+            <button type="button" class="toggle-btn active" data-separator=" ">{$translationsStore.space}</button>
+            <button type="button" class="toggle-btn" data-separator="-">{$translationsStore.hyphen}</button>
+            <button type="button" class="toggle-btn" data-separator=".">{$translationsStore.dot}</button>
+            <button type="button" class="toggle-btn" data-separator="">{$translationsStore.none}</button>
+            <button type="button" class="toggle-btn" data-separator="custom">{$translationsStore.custom}</button>
           </div>
           <input
             type="text"
             class="custom-separator"
             id="custom-separator"
             maxlength="3"
-            placeholder={t.custom_separator}
+            placeholder={$translationsStore.custom_separator}
             hidden
           />
         </div>
 
         <div class="setting">
-          <span class="setting__label">{t.casing}</span>
+          <span class="setting__label">{$translationsStore.casing}</span>
           <div class="toggle-group" role="group" aria-label="Wielkość liter">
-            <button type="button" class="toggle-btn active" data-casing="title">{t.title_case}</button>
-            <button type="button" class="toggle-btn" data-casing="lower">{t.lower_case}</button>
-            <button type="button" class="toggle-btn" data-casing="upper">{t.upper_case}</button>
-            <button type="button" class="toggle-btn" data-casing="random">{t.random_case}</button>
+            <button type="button" class="toggle-btn active" data-casing="title">{$translationsStore.title_case}</button>
+            <button type="button" class="toggle-btn" data-casing="lower">{$translationsStore.lower_case}</button>
+            <button type="button" class="toggle-btn" data-casing="upper">{$translationsStore.upper_case}</button>
+            <button type="button" class="toggle-btn" data-casing="random">{$translationsStore.random_case}</button>
           </div>
         </div>
 
         <label class="setting setting--switch">
           <span class="switch">
-            <input type="checkbox" id="add-digit" aria-label={t.add_digit} />
+            <input type="checkbox" id="add-digit" aria-label={$translationsStore.add_digit} />
             <span class="switch__slider"></span>
           </span>
-          <span class="setting__label">{t.add_digit}</span>
+          <span class="setting__label">{$translationsStore.add_digit}</span>
         </label>
 
         <label class="setting setting--switch">
           <span class="switch">
-            <input type="checkbox" id="add-special" aria-label={t.add_special} />
+            <input type="checkbox" id="add-special" aria-label={$translationsStore.add_special} />
             <span class="switch__slider"></span>
           </span>
-          <span class="setting__label">{t.add_special}</span>
+          <span class="setting__label">{$translationsStore.add_special}</span>
         </label>
 
         <div class="setting">
-          <label class="setting__label" for="crack-algorithm-select">{t.crack_algorithm}</label>
+          <label class="setting__label" for="crack-algorithm-select">{$translationsStore.crack_algorithm}</label>
           <select class="setting__select" id="crack-algorithm-select">
             <option value="md5">MD5 — 300 GH/s</option>
             <option value="ntlm">NTLM — 300 GH/s</option>
@@ -340,11 +257,11 @@
             <option value="sha256">SHA-256 — 45 GH/s</option>
             <option value="bcrypt">bcrypt cost 12 — 200 kH/s</option>
           </select>
-          <p class="setting__hint">{t.crack_algorithm_hint}</p>
+          <p class="setting__hint">{$translationsStore.crack_algorithm_hint}</p>
         </div>
 
         <div class="setting setting--dict">
-          <span class="setting__label">{t.dictionary}</span>
+          <span class="setting__label">{$translationsStore.dictionary}</span>
           <span class="setting__dict-info" id="dict-info">{wordlist.name}</span>
         </div>
       </div>
@@ -358,17 +275,17 @@
       </div>
 
       <div class="panel panel--info" id="entropy-info">
-        <h2 class="panel__title">{t.entropy_title}</h2>
-        <p class="panel__text">{t.entropy_desc}</p>
+        <h2 class="panel__title">{$translationsStore.entropy_title}</h2>
+        <p class="panel__text">{$translationsStore.entropy_desc}</p>
         <table class="entropy-table">
           <thead>
-            <tr><th>{t.entropy_column}</th><th>{t.rating_column}</th></tr>
+            <tr><th>{$translationsStore.entropy_column}</th><th>{$translationsStore.rating_column}</th></tr>
           </thead>
           <tbody>
-            <tr><td>{t.weak_bits}</td><td class="quality-weak">{t.weak}</td></tr>
-            <tr><td>{t.medium_bits}</td><td class="quality-medium">{t.medium}</td></tr>
-            <tr><td>{t.good_bits}</td><td class="quality-good">{t.good}</td></tr>
-            <tr><td>{t.strong_bits}</td><td class="quality-strong">{t.strong}</td></tr>
+            <tr><td>{$translationsStore.weak_bits}</td><td class="quality-weak">{$translationsStore.weak}</td></tr>
+            <tr><td>{$translationsStore.medium_bits}</td><td class="quality-medium">{$translationsStore.medium}</td></tr>
+            <tr><td>{$translationsStore.good_bits}</td><td class="quality-good">{$translationsStore.good}</td></tr>
+            <tr><td>{$translationsStore.strong_bits}</td><td class="quality-strong">{$translationsStore.strong}</td></tr>
           </tbody>
         </table>
         <div class="panel__icon" aria-hidden="true">
@@ -378,12 +295,12 @@
       </div>
 
       <div class="panel panel--info" id="how-it-works">
-        <h2 class="panel__title">{t.how_title}</h2>
+        <h2 class="panel__title">{$translationsStore.how_title}</h2>
         <ol class="steps">
-          <li><span class="steps__num">1</span>{t.step_1}</li>
-          <li><span class="steps__num">2</span>{t.step_2_before} <code>crypto.getRandomValues()</code>.</li>
-          <li><span class="steps__num">3</span>{t.step_3}</li>
-          <li><span class="steps__num">4</span>{t.step_4}</li>
+          <li><span class="steps__num">1</span>{$translationsStore.step_1}</li>
+          <li><span class="steps__num">2</span>{$translationsStore.step_2_before} <code>crypto.getRandomValues()</code>.</li>
+          <li><span class="steps__num">3</span>{$translationsStore.step_3}</li>
+          <li><span class="steps__num">4</span>{$translationsStore.step_4}</li>
         </ol>
         <div class="panel__dice" aria-hidden="true">
           <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
@@ -402,45 +319,35 @@
 
   <section class="security-bar" id="security">
     <div class="container">
-      <h2 class="security-bar__title">{t.security_title}</h2>
+      <h2 class="security-bar__title">{$translationsStore.security_title}</h2>
       <ul class="security-bar__list">
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             ><polyline points="20 6 9 17 4 12" /></svg>
-          {t.security_local}
+          {$translationsStore.security_local}
         </li>
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             ><polyline points="20 6 9 17 4 12" /></svg>
-          {t.security_no_server}
+          {$translationsStore.security_no_server}
         </li>
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             ><polyline points="20 6 9 17 4 12" /></svg>
-          {t.security_no_history}
+          {$translationsStore.security_no_history}
         </li>
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             ><polyline points="20 6 9 17 4 12" /></svg>
-          {t.security_crypto}
+          {$translationsStore.security_crypto}
         </li>
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             ><polyline points="20 6 9 17 4 12" /></svg>
-          {t.security_offline}
+          {$translationsStore.security_offline}
         </li>
       </ul>
     </div>
   </section>
-</main>
 
-<footer class="footer">
-  <div class="container footer__inner">
-    <div class="footer__brand">
-      <img src="/img/avatar.jpg?v=black-logo-20260607" alt="" class="footer__logo" aria-hidden="true" />
-      <span>Paweł Hordyński <strong>CyberGuru</strong></span>
-    </div>
-    <p class="footer__copy">© {new Date().getFullYear()} Paweł Hordyński Cyberguru</p>
-    <a href="mailto:sklep@pawelhordynski.com" class="footer__contact">{t.contact}</a>
-  </div>
-</footer>
+
