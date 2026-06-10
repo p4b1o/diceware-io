@@ -5,6 +5,7 @@
     import { translationsStore } from '$lib/stores/translations.store';
     import Card from "$lib/components/Card.svelte";
     import CardTitle from "$lib/components/CardTitle.svelte";
+    import Slider from "$lib/components/Slider.svelte";
 
     let password = $state('');
     let words = $state<string[]>([]);
@@ -51,6 +52,7 @@
     <CardTitle>
         {$translationsStore.your_password}
     </CardTitle>
+
     {password}
 
             <button
@@ -59,6 +61,13 @@
             >
                 Generuj
             </button>
+
+
+            <Slider
+                min={3}
+                max={15}
+                value={7}
+            />
 </Card>
 
 <style>
