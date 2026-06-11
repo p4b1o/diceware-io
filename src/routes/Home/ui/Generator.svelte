@@ -15,10 +15,9 @@
     let words = $state<string[]>([]);
 
     const generate = () => {
-        password = generatePassword(
-            words, 
-            $generatorStore
-        ).password;
+        const result = generatePassword(words, $generatorStore);
+        password = result.phrase;
+        console.log(result)
     }
 
     onMount(async () => {

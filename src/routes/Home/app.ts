@@ -11,7 +11,6 @@ export interface PasswordOptions {
   casing: CasingMode;
   addDigit: boolean;
   addSpecial: boolean;
-  crackAlgorithm: keyof typeof CRACK_ALGORITHMS;
 }
 
 interface EntropyPart {
@@ -110,9 +109,9 @@ function getSeparator(options: PasswordOptions): string {
   return options.separator;
 }
 
-export function generatePassword(words: string[], options: PasswordOptions): { password: string; selectedWords: string[] } {
-  if (words.length === 0) {
-    return { password: '', selectedWords: [] };
+export function generatePassword(words: string[], options: PasswordOptions): { phrase: string; entropy: number } {
+  if (words.length === 0 || options.wordCount < 1) {
+    return { phrase: '', entropy: 0 };
   }
 
   const selectedWords: string[] = [];
@@ -126,17 +125,18 @@ export function generatePassword(words: string[], options: PasswordOptions): { p
     generated.push(cased);
   }
 
-  let password = generated.join(getSeparator(options));
+  let phrase = generated.join(getSeparator(options));
 
   if (options.addDigit) {
-    password += secureRandomInt(10).toString();
+    phrase += secureRandomInt(10).toString();
   }
 
   if (options.addSpecial) {
-    password += SPECIAL_CHARS[secureRandomInt(SPECIAL_CHARS.length)];
+    phrase += SPECIAL_CHARS[secureRandomInt(SPECIAL_CHARS.length)];
   }
 
-  return { password, selectedWords };
+  const entropy = calculateEntropyDetails(words, options, selectedWords).total;
+  return { phrase, entropy };
 }
 
 export function calculateEntropyDetails(
