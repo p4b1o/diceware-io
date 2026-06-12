@@ -7,6 +7,7 @@
     import CardTitle from "$lib/components/CardTitle.svelte";
     import { generatorStore } from "./generator.store";
     import Icon from "$lib/components/Icon.svelte";
+    import Stat from "$lib/components/Stat.svelte";
 
     let password = $state('');
     let words = $state<string[]>([]);
@@ -80,6 +81,10 @@
         </span>
         {$translationsStore.copyPassPhrase}
     </button>
+
+    <Stat label="Entropy" accent>
+        Test value
+    </Stat>
 </Card>
 
 <style>
