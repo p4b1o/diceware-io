@@ -2,11 +2,14 @@
   This file was generated from initial source code.
 */
 
-export type CasingMode = 'lower' | 'upper' | 'title' | 'random';
+export const casingOptions = ['lower', 'upper', 'title', 'random'] as const;
+export type CasingMode = typeof casingOptions[number];
+
+export const separators = ['', ' ', '-', '.', 'custom'] as const;
 
 export interface PasswordOptions {
   wordCount: number;
-  separator: string;
+  separator: typeof separators[number];
   customSeparator: string;
   casing: CasingMode;
   addDigit: boolean;

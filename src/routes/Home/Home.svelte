@@ -6,6 +6,7 @@
     import { currentLang } from '$lib/stores/current-lang.store';
     import Generator from './ui/Generator.svelte';
     import OldHome from './ui/OldHome.svelte';
+    import Settings from './ui/Settings.svelte';
 
   type WordlistConfig = { url: string; name: string; locale: string };
 
@@ -64,14 +65,25 @@
   <link rel="icon" href="/img/avatar.jpg?v=black-logo-20260607" type="image/jpeg" />
 </svelte:head>
 
+<div class="container">
 <div class="home">
+  <div class="home__heading">
+    <span class="badge">{$translationsStore.badge}</span>
+    <h1 class="hero__title">
+      {$translationsStore.hero_title_main}<br /><span class="hero__accent">{$translationsStore.hero_title_accent}</span>
+    </h1>
+    <p class="hero__desc">
+      {$translationsStore.hero_desc_before} <strong>{$translationsStore.hero_desc_strong}</strong> {$translationsStore.hero_desc_after}
+    </p>
+  </div>
+
   <div class="home__pass-gen">
     <Generator />
   </div>
 
   <div class="home__pass-settings">
-
+    <Settings />
   </div>
 </div>
-
+</div>
 <OldHome />

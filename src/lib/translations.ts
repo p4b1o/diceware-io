@@ -107,6 +107,8 @@ export const TRANSLATIONS = {
         crackMinutes: 'min',
         crackSeconds: 's',
         downloadFile: 'cyberguru-diceware-haslo.txt',
+        generateNewPassword: 'Generuj nowe',
+        copyPassPhrase: 'Kopiuj frazę'
     },
     en: {
         meta_description:
@@ -212,5 +214,7 @@ export const TRANSLATIONS = {
         crackMinutes: 'min',
         crackSeconds: 's',
         downloadFile: 'cyberguru-diceware-passphrase.txt',
+        generateNewPassword: 'Generate',
+        copyPassPhrase: 'Copy',
     },
 } as const;

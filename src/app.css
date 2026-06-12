@@ -10,13 +10,14 @@
     --burgundy: #871714;
     --text: #ffffff;
     --muted: #a9a9a9;
-    --border: rgba(229, 35, 41, 0.35);
+    --border: rgba(229, 35, 41, 0.45);
     --glow: rgba(229, 35, 41, 0.15);
     --radius: 8px;
     --radius-lg: 12px;
     --font-heading: "Space Grotesk", Arial, sans-serif;
     --font-body: "Poppins", Arial, sans-serif;
     --transition: 0.2s ease;
+    --standard-padding: 1.5rem;
   }
   
   *, *::before, *::after {
@@ -64,7 +65,7 @@
     width: 100%;
     max-width: 1180px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 var(--standard-padding);
   }
   
   section[id],
