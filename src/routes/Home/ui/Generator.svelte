@@ -1,21 +1,26 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { currentLang } from '$lib/stores/current-lang.store';
-    import { generatePassword, parseWordlist } from "../app";
+    import { generatePassword, getQuality, parseWordlist } from "../app";
     import { translationsStore } from '$lib/stores/translations.store';
     import Card from "$lib/components/Card.svelte";
     import CardTitle from "$lib/components/CardTitle.svelte";
     import { generatorStore } from "./generator.store";
     import Icon from "$lib/components/Icon.svelte";
     import Stat from "$lib/components/Stat.svelte";
+    import PasswordQuality from "./PasswordQuality.svelte";
 
     let password = $state('');
+    let entropy = $state(0);
     let words = $state<string[]>([]);
+    let visible = $state(true);
 
     const generate = () => {
         const result = generatePassword(words, $generatorStore);
         password = result.phrase;
-        console.log(result)
+        entropy = result.entropy;
+
+        console.log(result, getQuality(entropy))
     }
 
     const copy = async () => {
@@ -61,30 +66,59 @@
     <div class="password">
         {password}
     </div>
-    
-    <button
-        onclick={() => generate()}
-        class="btn btn--outline"
-    >
-        <span class="btn__icon">
-            <Icon name="refresh"/>
-        </span>
-        {$translationsStore.generateNewPassword}
-    </button>
 
-    <button
-        class="btn btn--outline"
-        onclick={() => copy()}
-    >
-        <span class="btn__icon">
-            <Icon name="content_copy"/>
-        </span>
-        {$translationsStore.copyPassPhrase}
-    </button>
+    <div class="password-stats">
+        {#key entropy}
+            <Stat label={$translationsStore.entropy} accent>
+                {entropy.toFixed(2)} {$translationsStore.bits}
+            </Stat>
+            <Stat label={$translationsStore.quality}>
+                <PasswordQuality entropy={entropy} />
+            </Stat>
+        {/key}
+    </div>
 
-    <Stat label="Entropy" accent>
-        Test value
-    </Stat>
+    <div class="password-actions">
+        <button
+            onclick={() => generate()}
+            class="btn btn--outline"
+        >
+            <span class="btn__icon">
+                <Icon name="refresh"/>
+            </span>
+            {$translationsStore.generateNewPassword}
+        </button>
+
+        <button
+            class="btn btn--outline"
+            onclick={() => copy()}
+        >
+            <span class="btn__icon">
+                <Icon name="content_copy"/>
+            </span>
+            {$translationsStore.copyPassPhrase}
+        </button>
+
+        <button
+            class="btn btn--outline"
+            onclick={() => visible = !visible}
+        >
+            <span class="btn__icon">
+                <Icon name={visible ? 'visibility_off' : 'visibility'}/>
+            </span>
+            {visible ? $translationsStore.hide : $translationsStore.show}
+        </button>
+
+        <button
+            class="btn btn--outline"
+            onclick={() => copy()}
+        >
+            <span class="btn__icon">
+                <Icon name="download"/>
+            </span>
+            {$translationsStore.export_txt}
+        </button>
+    </div>
 </Card>
 
 <style>
@@ -109,6 +143,18 @@
 
         width: calc(100% + 2 * var(--standard-padding));
         transform: translateX(calc(-1 * var(--standard-padding)));
+    }
+
+    .password-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-bottom: 1rem;
+    }
+
+    .password-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
     }
 
     .btn__icon {

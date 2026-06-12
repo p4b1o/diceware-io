@@ -54,7 +54,7 @@
     }
 
     @media all and (min-width: 500px) {
-        .card {
+        .card__inner {
             padding: 1.5rem;
         }
     }

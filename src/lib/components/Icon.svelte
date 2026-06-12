@@ -2,7 +2,10 @@
   export type IconName =
     | "add"
     | "content_copy"
+    | "download"
     | "refresh"
+    | "visibility"
+    | "visibility_off"
     | "arrow_back_ios";
 
   const { name } = $props<{ name: IconName }>();
