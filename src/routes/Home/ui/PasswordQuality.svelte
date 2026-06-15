@@ -8,10 +8,14 @@
 
     const { entropy }: Props = $props<Props & {}>();
     const quality = getQuality(entropy);
+
+    const convertQualityToLabel = (quality: number) => {
+        return ($translationsStore as any)['qualityLabel' + quality];
+    }
 </script>
 
 <div class="password-quality">
-    <span class="password-quality__value">{$translationsStore.qualityLabels[quality.level]}</span>
+    <span class="password-quality__value">{convertQualityToLabel(quality.level)}</span>
     <div class="password-quality__bar" aria-hidden="true">
         {#each Array(5) as _, index}
             <span class="password-quality__seg" class:password-quality__seg--active={index < quality.level}></span>
