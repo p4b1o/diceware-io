@@ -1,10 +1,12 @@
 <script lang="ts">
   export type IconName =
     | "add"
+    | "close"
     | "content_copy"
     | "download"
     | "keyboard_arrow_down"
     | "keyboard_arrow_up"
+    | "menu"
     | "refresh"
     | "remove"
     | "settings"

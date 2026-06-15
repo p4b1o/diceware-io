@@ -106,6 +106,7 @@
     text-decoration: none;
     color: inherit;
     flex-shrink: 0;
+    width: calc(100% - 50px)
   }
   
   .brand__avatar {

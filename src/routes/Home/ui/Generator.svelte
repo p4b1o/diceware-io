@@ -299,4 +299,10 @@
         font-size: 1.25rem;
         padding: 0.25rem 0.75rem;
     }
+
+    @media all and (min-width: 768px) {
+        .floating-password {
+            display: none;
+        }
+    }
 </style>

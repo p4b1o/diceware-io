@@ -4,8 +4,11 @@
   import { translationsStore } from '$lib/stores/translations.store';
   import { currentLang } from '$lib/stores/current-lang.store';
   import Toast from '$lib/components/Toast.svelte';
+    import Icon from '$lib/components/Icon.svelte';
  
 	let { children, data } = $props();
+
+  let menuExpanded = $state(false);
 
   const changeLang = (lang: Lang) => {
     currentLang.set(lang);
@@ -30,7 +33,19 @@
       </div>
     </a>
 
-    <nav class="nav" aria-label="Nawigacja">
+    <button 
+      type="button" 
+      class="menu-toggle" 
+      id="nav-toggle" 
+      aria-label="Menu" 
+      aria-expanded="false"
+      onclick={() => menuExpanded = !menuExpanded}
+    >
+      <!-- <span></span><span></span><span></span> -->
+       <Icon name={menuExpanded ? 'close' : 'menu'} />
+    </button>
+
+    <nav class="nav" class:nav--expanded={menuExpanded} aria-label="Nawigacja">
       <a href="#how-it-works" class="nav__link">{$translationsStore.nav_how}</a>
       <a href="#security" class="nav__link">{$translationsStore.nav_security}</a>
       <a
@@ -68,14 +83,8 @@
         </a>
       </div>
     </nav>
-    <button type="button" class="btn btn--outline btn--header" id="btn-copy-header">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
-        ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-      {$translationsStore.copy_password}
-    </button>
-    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+
+    
   </div>
 </header>
 
@@ -95,5 +104,39 @@
 </footer>
 
 <style>
-  
+    .menu-toggle {
+      background-color: transparent;
+      border: none;
+      color: var(--font);
+      font-size: 2rem;
+    }
+
+    .nav {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .nav--expanded { 
+      display: flex;
+    }
+
+    @media all and (min-width: 768px) {
+      .menu-toggle {
+        display: none;
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: end;
+        align-items: center;
+      }
+
+      .brand {
+        width: auto;
+      }
+    }
 </style>
