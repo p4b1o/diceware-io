@@ -9,11 +9,15 @@
     import Icon from "$lib/components/Icon.svelte";
     import Stat from "$lib/components/Stat.svelte";
     import PasswordQuality from "./PasswordQuality.svelte";
+    import { toast } from "$lib/stores/toast.store";
+    import FormLabel from "$lib/components/FormLabel.svelte";
 
     let password = $state('');
     let entropy = $state(0);
     let words = $state<string[]>([]);
     let visible = $state(true);
+    let floatingPasswordVisible = $state(false);
+    let containerRef: HTMLElement;
 
     const generate = () => {
         const result = generatePassword(words, $generatorStore);
@@ -36,7 +40,33 @@
             document.execCommand("copy");
             document.body.removeChild(ta);
         }
+
+        toast.show($translationsStore.copied, 'success')
     }
+
+    const scrollToSettings = () => {
+        const containerPos = containerRef.offsetTop;
+        const containerHeight = containerRef.clientHeight;
+
+        window.scrollTo({
+            top: containerPos + containerHeight
+        })
+    }
+
+    const exportPassword = () => {
+        const blob = new Blob([password], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'password.txt';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
+
+    let observer: IntersectionObserver | null = null;
+    let observerElement: HTMLElement;
 
     onMount(async () => {
         currentLang.subscribe(async (lang) => {
@@ -54,16 +84,45 @@
 
         generatorStore.subscribe(options => {
             generate();
-        })
+        });
+
+        observer = new IntersectionObserver((entries) => {
+                const entry = entries[0];
+
+                floatingPasswordVisible = entry.intersectionRatio === 0;
+
+                if (entry.intersectionRatio === 0) {
+                    console.log("Completely invisible");
+                }
+
+                if (entry.intersectionRatio > 0) {
+                    console.log("Completely visible");
+                }
+            }, { threshold: 0 }
+        );
+
+        observer.observe(observerElement);
     });
+    
 </script>
 
+<div bind:this={containerRef}>
 <Card glow>
     <CardTitle>
-        {$translationsStore.your_password}
+        <div class="password-header">
+            {$translationsStore.your_password}
+
+            <button class="settings-btn" onclick={() => scrollToSettings()}>
+                <Icon name="settings" />
+            </button>
+        </div>
     </CardTitle>
 
-    <div class="password">
+    <div 
+        class="password" 
+        class:hidden={!visible}
+        bind:this={observerElement}
+    >
         {password}
     </div>
 
@@ -99,7 +158,7 @@
             {$translationsStore.copyPassPhrase}
         </button>
 
-        <button
+        <!-- <button
             class="btn btn--outline"
             onclick={() => visible = !visible}
         >
@@ -111,17 +170,48 @@
 
         <button
             class="btn btn--outline"
-            onclick={() => copy()}
+            onclick={() => exportPassword()}
         >
             <span class="btn__icon">
                 <Icon name="download"/>
             </span>
             {$translationsStore.export_txt}
-        </button>
+        </button> -->
     </div>
 </Card>
+</div>
+
+{#if floatingPasswordVisible}
+    <div class="floating-password">
+        <FormLabel>{$translationsStore.your_password}</FormLabel>
+        <div class="floating-password__content">
+            <div class="floating-password__pass">
+                {password}
+            </div>
+            <div class="floating-password__btns">
+                <button 
+                    class="btn btn--outline floating-password__btn"
+                    onclick={() => generate()}
+                >
+                    <Icon name="refresh" />
+                </button>
+                <button 
+                    class="btn btn--outline floating-password__btn"
+                    onclick={() => copy()}
+                >
+                    <Icon name="content_copy" />
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 <style>
+    .password-header {
+        display: flex;
+        justify-content: space-between;
+    }
+
     .password {
         position: relative;
         background: var(--panel-2);
@@ -131,7 +221,6 @@
         padding: 20px var(--standard-padding);
         margin-bottom: 24px;
         display: flex;
-
 
         font-family: var(--font-heading);
         font-size: clamp(1rem, 2.5vw, 1.5rem);
@@ -143,6 +232,11 @@
 
         width: calc(100% + 2 * var(--standard-padding));
         transform: translateX(calc(-1 * var(--standard-padding)));
+    }
+
+    .password.hidden {
+        filter: blur(8px);
+        user-select: none;
     }
 
     .password-stats {
@@ -157,7 +251,46 @@
         gap: 1rem;
     }
 
+    .settings-btn {
+        background-color: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 1rem;
+    }
+
     .btn__icon {
         font-size: 1.5em;
+    }
+
+    .floating-password {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--panel-2);
+        z-index: 100;
+        padding: 0.75rem var(--standard-padding);
+        border-top: 1px solid var(--border);
+    }
+
+    .floating-password__content {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .floating-password__pass {
+        flex: 1;
+        word-break: break-word;
+    }
+
+    .floating-password__btns {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .floating-password__btn {
+        font-size: 1.25rem;
+        padding: 0.25rem 0.75rem;
     }
 </style>

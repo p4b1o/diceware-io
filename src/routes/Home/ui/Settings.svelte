@@ -6,46 +6,86 @@
     import FormLabel from "$lib/components/FormLabel.svelte";
     import Switch from "$lib/components/Switch.svelte";
     import { generatorStore } from "./generator.store";
+    import Card from "$lib/components/Card.svelte";
+    import CardTitle from "$lib/components/CardTitle.svelte";
 </script>
 
-<FormLabel>{$translationsStore.word_count}</FormLabel>
-<Slider
-    min={3}
-    max={15}
-    bind:value={$generatorStore.wordCount}
-/>
+<Card>
+    <CardTitle>
+        {$translationsStore.settings_title}
+    </CardTitle>
 
-<FormLabel>{$translationsStore.separator}</FormLabel>
-<RadioGroup 
-    options={[
-        { label: $translationsStore.space, value: ' ' },
-        { label: $translationsStore.hyphen, value: '-' },
-        { label: $translationsStore.dot, value: '.' },
-        { label: $translationsStore.none, value: '' },
-        { label: $translationsStore.custom, value: 'custom' },
-    ] satisfies { label: string, value: PasswordOptions['separator'] }[]}
-    name=""
-    bind:value={$generatorStore.separator}
-/>
+    <div class="settings-form-group">
+        <div>
+            <FormLabel>{$translationsStore.word_count}</FormLabel>
+            <Slider
+                min={3}
+                max={15}
+                bind:value={$generatorStore.wordCount}
+            />
+        </div>
 
-<FormLabel>{$translationsStore.casing}</FormLabel>
-<RadioGroup 
-    options={[
-        { label: $translationsStore.title_case, value: 'title' },
-        { label: $translationsStore.lower_case, value: 'lower' },
-        { label: $translationsStore.upper_case, value: 'upper' },
-        { label: $translationsStore.random_case, value: 'random' },
-    ] satisfies { label: string, value: CasingMode }[]}
-    name=""
-    bind:value={$generatorStore.casing}
-/>
+        <div>
+            <FormLabel>{$translationsStore.separator}</FormLabel>
+            <RadioGroup 
+                options={[
+                    { label: $translationsStore.space, value: ' ' },
+                    { label: $translationsStore.hyphen, value: '-' },
+                    { label: $translationsStore.dot, value: '.' },
+                    { label: $translationsStore.none, value: '' },
+                    { label: $translationsStore.custom, value: 'custom' },
+                ] satisfies { label: string, value: PasswordOptions['separator'] }[]}
+                name=""
+                bind:value={$generatorStore.separator}
+            />
+            {#if $generatorStore.separator === 'custom'}
+                <input 
+                    type="text" 
+                    name="custom-separator" 
+                    placeholder="Custom separator"
+                    class="custom-separator"
+                    required
+                    minlength="1"
+                    maxlength="5"
+                    bind:value={$generatorStore.customSeparator} 
+                />
+            {/if}
+        </div>
 
-<Switch 
-    label={$translationsStore.add_digit}
-    bind:checked={$generatorStore.addDigit}
-/>
+        <div>
+            <FormLabel>{$translationsStore.casing}</FormLabel>
+            <RadioGroup 
+                options={[
+                    { label: $translationsStore.title_case, value: 'title' },
+                    { label: $translationsStore.lower_case, value: 'lower' },
+                    { label: $translationsStore.upper_case, value: 'upper' },
+                    { label: $translationsStore.random_case, value: 'random' },
+                ] satisfies { label: string, value: CasingMode }[]}
+                name=""
+                bind:value={$generatorStore.casing}
+            />
+        </div>
 
-<Switch 
-    label={$translationsStore.add_special}
-    bind:checked={$generatorStore.addSpecial}
-/>
+        <div>
+            <Switch 
+                label={$translationsStore.add_digit}
+                bind:checked={$generatorStore.addDigit}
+            />
+        </div>
+
+        <div>
+            <Switch 
+                label={$translationsStore.add_special}
+                bind:checked={$generatorStore.addSpecial}
+            />
+        </div>
+    </div>
+</Card>
+
+<style>
+    .settings-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+</style>

@@ -3,6 +3,7 @@
   import { isSupportedLang, type Lang } from '$lib/types/supported-langs';
   import { translationsStore } from '$lib/stores/translations.store';
   import { currentLang } from '$lib/stores/current-lang.store';
+  import Toast from '$lib/components/Toast.svelte';
  
 	let { children, data } = $props();
 
@@ -14,6 +15,8 @@
     changeLang(data.langFromQuery);
   }
 </script>
+
+<Toast />
 
 <div class="page-bg" aria-hidden="true"></div>
 

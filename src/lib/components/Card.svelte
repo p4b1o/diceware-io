@@ -15,7 +15,10 @@
 <div 
     class="card"
 >
-    <div class="card__glow"></div>
+    {#if glow}
+        <div class="card__glow"></div>
+    {/if}
+
     <div class="card__inner">
         {@render children()}
     </div>

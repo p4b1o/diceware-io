@@ -4,6 +4,7 @@
     | "content_copy"
     | "download"
     | "refresh"
+    | "settings"
     | "visibility"
     | "visibility_off"
     | "arrow_back_ios";
