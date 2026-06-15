@@ -8,78 +8,90 @@
     import { generatorStore } from "./generator.store";
     import Card from "$lib/components/Card.svelte";
     import CardTitle from "$lib/components/CardTitle.svelte";
+    import Icon from "$lib/components/Icon.svelte";
+    import AccordionContent from "$lib/components/AccordionContent.svelte";
+
+    let expanded = $state(true);
 </script>
 
 <Card>
     <CardTitle>
-        {$translationsStore.settings_title}
+        <div class="settings-header">
+            <span>{$translationsStore.settings_title}</span>
+            <button class="settings-header__toggle" onclick={() => expanded = !expanded}>
+                <Icon name={expanded ? 'keyboard_arrow_down' : 'keyboard_arrow_up'} />
+            </button>
+        </div>
+        
     </CardTitle>
 
-    <div class="settings-form-group">
-        <div>
-            <FormLabel>{$translationsStore.word_count}</FormLabel>
-            <Slider
-                min={3}
-                max={15}
-                bind:value={$generatorStore.wordCount}
-            />
-        </div>
-
-        <div>
-            <FormLabel>{$translationsStore.separator}</FormLabel>
-            <RadioGroup 
-                options={[
-                    { label: $translationsStore.space, value: ' ' },
-                    { label: $translationsStore.hyphen, value: '-' },
-                    { label: $translationsStore.dot, value: '.' },
-                    { label: $translationsStore.none, value: '' },
-                    { label: $translationsStore.custom, value: 'custom' },
-                ] satisfies { label: string, value: PasswordOptions['separator'] }[]}
-                name=""
-                bind:value={$generatorStore.separator}
-            />
-            {#if $generatorStore.separator === 'custom'}
-                <input 
-                    type="text" 
-                    name="custom-separator" 
-                    placeholder="Custom separator"
-                    class="custom-separator"
-                    required
-                    minlength="1"
-                    maxlength="5"
-                    bind:value={$generatorStore.customSeparator} 
+    <AccordionContent expanded={expanded}>
+        <div class="settings-form-group">
+            <div>
+                <FormLabel>{$translationsStore.word_count}</FormLabel>
+                <Slider
+                    min={3}
+                    max={15}
+                    bind:value={$generatorStore.wordCount}
                 />
-            {/if}
-        </div>
+            </div>
 
-        <div>
-            <FormLabel>{$translationsStore.casing}</FormLabel>
-            <RadioGroup 
-                options={[
-                    { label: $translationsStore.title_case, value: 'title' },
-                    { label: $translationsStore.lower_case, value: 'lower' },
-                    { label: $translationsStore.upper_case, value: 'upper' },
-                    { label: $translationsStore.random_case, value: 'random' },
-                ] satisfies { label: string, value: CasingMode }[]}
-                name=""
-                bind:value={$generatorStore.casing}
-            />
-        </div>
+            <div>
+                <FormLabel>{$translationsStore.separator}</FormLabel>
+                <RadioGroup 
+                    options={[
+                        { label: $translationsStore.space, value: ' ' },
+                        { label: $translationsStore.hyphen, value: '-' },
+                        { label: $translationsStore.dot, value: '.' },
+                        { label: $translationsStore.none, value: '' },
+                        { label: $translationsStore.custom, value: 'custom' },
+                    ] satisfies { label: string, value: PasswordOptions['separator'] }[]}
+                    name=""
+                    bind:value={$generatorStore.separator}
+                />
+                {#if $generatorStore.separator === 'custom'}
+                    <input 
+                        type="text" 
+                        name="custom-separator" 
+                        placeholder="Custom separator"
+                        class="custom-separator"
+                        required
+                        minlength="1"
+                        maxlength="5"
+                        bind:value={$generatorStore.customSeparator} 
+                    />
+                {/if}
+            </div>
 
-        <div>
-            <Switch 
-                label={$translationsStore.add_digit}
-                bind:checked={$generatorStore.addDigit}
-            />
-        </div>
+            <div>
+                <FormLabel>{$translationsStore.casing}</FormLabel>
+                <RadioGroup 
+                    options={[
+                        { label: $translationsStore.title_case, value: 'title' },
+                        { label: $translationsStore.lower_case, value: 'lower' },
+                        { label: $translationsStore.upper_case, value: 'upper' },
+                        { label: $translationsStore.random_case, value: 'random' },
+                    ] satisfies { label: string, value: CasingMode }[]}
+                    name=""
+                    bind:value={$generatorStore.casing}
+                />
+            </div>
 
-        <div>
-            <Switch 
-                label={$translationsStore.add_special}
-                bind:checked={$generatorStore.addSpecial}
-            />
+            <div>
+                <Switch 
+                    label={$translationsStore.add_digit}
+                    bind:checked={$generatorStore.addDigit}
+                />
+            </div>
+
+            <div>
+                <Switch 
+                    label={$translationsStore.add_special}
+                    bind:checked={$generatorStore.addSpecial}
+                />
+            </div>
         </div>
-    </div>
+    </AccordionContent>
 </Card>
 
 <style>
@@ -87,5 +99,17 @@
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+    }
+
+    .settings-header {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .settings-header__toggle {
+        background-color: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 1rem;
     }
 </style>

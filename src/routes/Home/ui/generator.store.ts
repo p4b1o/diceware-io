@@ -9,3 +9,9 @@ export const generatorStore = writable<PasswordOptions>({
     separator: ' ',
     customSeparator: '',
 })
+
+export const passwordStore = writable<{ phrase: string; entropy: number, words: string[] }>({
+    words: [],
+    phrase: '',
+    entropy: 0
+});

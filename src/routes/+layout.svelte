@@ -83,7 +83,6 @@
   {@render children()}
 </main>
 
-
 <footer class="footer">
   <div class="container footer__inner">
     <div class="footer__brand">

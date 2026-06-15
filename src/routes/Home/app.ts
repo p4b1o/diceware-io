@@ -112,9 +112,9 @@ function getSeparator(options: PasswordOptions): string {
   return options.separator;
 }
 
-export function generatePassword(words: string[], options: PasswordOptions): { phrase: string; entropy: number } {
+export function generatePassword(words: string[], options: PasswordOptions): { phrase: string; entropy: number, words: string[] } {
   if (words.length === 0 || options.wordCount < 1) {
-    return { phrase: '', entropy: 0 };
+    return { phrase: '', entropy: 0, words: [] };
   }
 
   const selectedWords: string[] = [];
@@ -139,7 +139,7 @@ export function generatePassword(words: string[], options: PasswordOptions): { p
   }
 
   const entropy = calculateEntropyDetails(words, options, selectedWords).total;
-  return { phrase, entropy };
+  return { phrase, entropy, words };
 }
 
 export function calculateEntropyDetails(
@@ -217,7 +217,8 @@ export function formatCrackDuration(seconds: number): string {
   return `${formatted} ${unit.label}`;
 }
 
-export function calculateCrackEstimate(entropy: number, algorithmKey: keyof typeof CRACK_ALGORITHMS = 'md5'): CrackEstimate {
+export type CrackAlghoritm = keyof typeof CRACK_ALGORITHMS;
+export function calculateCrackEstimate(entropy: number, algorithmKey: CrackAlghoritm = 'md5'): CrackEstimate {
   const algorithm = CRACK_ALGORITHMS[algorithmKey];
   const averageGuesses = 2 ** Math.max(entropy - 1, 0);
   return {

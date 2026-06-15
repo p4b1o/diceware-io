@@ -5,15 +5,13 @@
     import { translationsStore } from '$lib/stores/translations.store';
     import Card from "$lib/components/Card.svelte";
     import CardTitle from "$lib/components/CardTitle.svelte";
-    import { generatorStore } from "./generator.store";
+    import { generatorStore, passwordStore } from "./generator.store";
     import Icon from "$lib/components/Icon.svelte";
     import Stat from "$lib/components/Stat.svelte";
     import PasswordQuality from "./PasswordQuality.svelte";
     import { toast } from "$lib/stores/toast.store";
     import FormLabel from "$lib/components/FormLabel.svelte";
 
-    let password = $state('');
-    let entropy = $state(0);
     let words = $state<string[]>([]);
     let visible = $state(true);
     let floatingPasswordVisible = $state(false);
@@ -21,18 +19,20 @@
 
     const generate = () => {
         const result = generatePassword(words, $generatorStore);
-        password = result.phrase;
-        entropy = result.entropy;
+        
+        passwordStore.set({
+            ...result
+        })
 
-        console.log(result, getQuality(entropy))
+        console.log(result, getQuality($passwordStore.entropy))
     }
 
     const copy = async () => {
         try {
-            await navigator.clipboard.writeText(password);
+            await navigator.clipboard.writeText($passwordStore.phrase);
         } catch {
             const ta = document.createElement("textarea");
-            ta.value = password;
+            ta.value = $passwordStore.phrase;
             ta.style.position = "fixed";
             ta.style.opacity = "0";
             document.body.appendChild(ta);
@@ -54,7 +54,7 @@
     }
 
     const exportPassword = () => {
-        const blob = new Blob([password], { type: 'text/plain;charset=utf-8' });
+        const blob = new Blob([$passwordStore.phrase], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
@@ -123,16 +123,16 @@
         class:hidden={!visible}
         bind:this={observerElement}
     >
-        {password}
+        {$passwordStore.phrase}
     </div>
 
     <div class="password-stats">
-        {#key entropy}
+        {#key $passwordStore.entropy}
             <Stat label={$translationsStore.entropy} accent>
-                {entropy.toFixed(2)} {$translationsStore.bits}
+                {$passwordStore.entropy.toFixed(2)} {$translationsStore.bits}
             </Stat>
             <Stat label={$translationsStore.quality}>
-                <PasswordQuality entropy={entropy} />
+                <PasswordQuality entropy={$passwordStore.entropy} />
             </Stat>
         {/key}
     </div>
@@ -157,7 +157,7 @@
             </span>
             {$translationsStore.copyPassPhrase}
         </button>
-
+        
         <!-- <button
             class="btn btn--outline"
             onclick={() => visible = !visible}
@@ -178,6 +178,12 @@
             {$translationsStore.export_txt}
         </button> -->
     </div>
+
+    <p class="privacy-note">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg> Your passphrase never leaves your device. Generation happens 100% locally.
+    </p>
 </Card>
 </div>
 
@@ -186,7 +192,7 @@
         <FormLabel>{$translationsStore.your_password}</FormLabel>
         <div class="floating-password__content">
             <div class="floating-password__pass">
-                {password}
+                {$passwordStore.phrase}
             </div>
             <div class="floating-password__btns">
                 <button 
