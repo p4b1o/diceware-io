@@ -6,12 +6,12 @@
 Hasła są generowane lokalnie w przeglądarce. Serwer dostarcza tylko stronę, statyczne pliki i słowniki.
 
 [![Live demo](https://img.shields.io/badge/live-diceware.io-e52329?style=for-the-badge)](https://diceware.io)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-latest-FF3E00?style=for-the-badge&logo=svelte&logoColor=white)](https://kit.svelte.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Vanilla JS](https://img.shields.io/badge/frontend-vanilla_JS-F7DF1E?style=for-the-badge&logo=javascript&logoColor=111)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-[Demo](https://diceware.io) · [Jak działa](#jak-to-działa) · [Bezpieczeństwo](#bezpieczeństwo) · [Docker](#docker) · [Roadmap](#roadmap)
+[Demo](https://diceware.io) · [Jak działa](#jak-to-działa) · [Bezpieczeństwo](#bezpieczeństwo) · [Uruchomienie lokalne](#uruchomienie-lokalne) · [Deployment](#deployment)
 
 </div>
 
@@ -21,7 +21,7 @@ Hasła są generowane lokalnie w przeglądarce. Serwer dostarcza tylko stronę, 
 
 CyberGuru Diceware to lekka aplikacja webowa do generowania passphrase, czyli długich haseł złożonych ze słów. Zamiast tworzyć losowy ciąg znaków typu `v4$Kz!9pQ`, aplikacja generuje hasła, które są dużo łatwiejsze do zapamiętania, a jednocześnie mogą mieć bardzo wysoką entropię.
 
-Projekt jest zbudowany prosto i świadomie: FastAPI renderuje stronę, a cała właściwa logika generowania hasła działa po stronie klienta w czystym JavaScripcie.
+Projekt jest zbudowany nowoczesnie z SvelteKit: cała aplikacja jest kompilowana do statycznych plików, a logika generowania hasła działa po stronie klienta w TypeScript. Serwer jedynie serwuje plik HTML i zasoby statyczne.
 
 ## Najważniejsze Funkcje
 
@@ -31,35 +31,37 @@ Projekt jest zbudowany prosto i świadomie: FastAPI renderuje stronę, a cała w
 - Dynamiczne liczenie entropii i orientacyjnego czasu łamania.
 - Obsługa kilku profili ataku: MD5, NTLM, SHA-1, SHA-256 i bcrypt.
 - Konfigurowalna liczba słów, separator, wielkość liter, cyfra i znak specjalny.
-- Automatyczny wybór języka na podstawie kraju z nagłówków proxy/CDN.
-- Ręczne przełączanie języka przez `?lang=pl` i `?lang=en`.
-- Kopiowanie do schowka, eksport do `.txt` i tryb ukrywania hasła.
-- Service Worker z cachem plików, żeby aplikacja działała szybciej po pierwszym wejściu.
-- Responsywny interfejs bez ciężkich frameworków frontendowych.
-- Gotowy `Dockerfile` do wdrożenia na VPS, PaaS albo za reverse proxy.
+- Automatyczny wybór języka na podstawie nagłówków proxy/CDN.
+- Obsługa parametru `?lang=pl` i `?lang=en` do wymuszenia języka.
+- Kopiowanie do schowka i Export jako plik tekstowy.
+- Service Worker do działania offline i cache'owania plików.
+- Responsywny interfejs zbudowany w Svelte.
+- Gotowy `Dockerfile` do deploymentu.
 
-## Stack
+## Tech Stack
 
 | Warstwa | Technologia |
 | --- | --- |
-| Backend | Python 3.12, FastAPI, Uvicorn |
-| Template engine | Jinja2 |
-| Frontend | HTML, CSS, vanilla JavaScript |
-| Offline/cache | Service Worker |
-| Deployment | Docker, reverse proxy, VPS |
-| Analytics | Google Tag Manager |
+| Frontend | SvelteKit, TypeScript, Vite |
+| Styling | CSS |
+| Zarządzanie stanem | Svelte Stores |
+| Deployment | Static adapter, Nginx, PM2 |
+| Build | Vite |
+| Tłumaczenia | i18n (Svelte Stores) |
 
 ## Jak To Działa
 
-1. Przeglądarka pobiera stronę oraz wybrany słownik słów.
-2. JavaScript losuje indeksy słów lokalnie przy pomocy `crypto.getRandomValues()`.
-3. Aplikacja składa passphrase zgodnie z wybranymi ustawieniami.
-4. Entropia i szacowany czas łamania są liczone po stronie klienta.
-5. Backend nie otrzymuje hasła, nie zapisuje historii i nie ma endpointu generującego hasła.
+1. Przeglądarka pobiera skompilowaną aplikację SvelteKit (statyczne pliki HTML/CSS/JS).
+2. Pobierana jest lokalizacja i wybrany słownik słów.
+3. TypeScript generuje indeksy słów lokalnie przy pomocy `crypto.getRandomValues()`.
+4. Aplikacja składa passphrase zgodnie z wybranymi ustawieniami (liczba słów, separator, itd).
+5. Entropia i szacowany czas łamania są liczone po stronie klienta.
+6. Serwer nie otrzymuje hasła, nie zapisuje historii i nie ma endpointu generującego hasła.
 
 ```text
 browser
-  ├─ downloads HTML/CSS/JS/wordlist
+  ├─ downloads static app (HTML/CSS/JS)
+  ├─ downloads wordlist
   ├─ generates random words locally
   ├─ calculates entropy locally
   └─ never sends the passphrase back to the server
@@ -71,12 +73,11 @@ Model bezpieczeństwa jest prosty: serwer nie powinien wiedzieć, jakie hasło z
 
 - Generowanie odbywa się w przeglądarce użytkownika.
 - Losowość pochodzi z Web Crypto API: `crypto.getRandomValues()`.
-- FastAPI służy do renderowania strony i serwowania plików statycznych.
-- Brak backendowego endpointu typu `/generate-password`.
+- SvelteKit kompiluje się do statycznych plików HTML, CSS i JavaScript.
+- Serwer jedynie serwuje pliki statyczne i słowniki.
+- Brak backendu renderującego hasła ani zmiennych środowiskowych do haseł.
 - Brak zapisu historii haseł, logów haseł i sesji użytkownika.
-- Google Tag Manager jest używany do analityki strony, nie do generowania ani przesyłania haseł.
-
-> Uwaga: jak w każdej aplikacji webowej z zewnętrznymi skryptami, pełny model zaufania obejmuje także dostawców ładowanych zasobów. Samo hasło jest jednak generowane i przechowywane wyłącznie w pamięci przeglądarki.
+- Hasło jest generowane i przechowywane wyłącznie w pamięci przeglądarki.
 
 ## Entropia
 
@@ -124,62 +125,42 @@ Aktualnie używane przybliżenia:
 
 To szacunek porównawczy, nie gwarancja. Realny wynik zależy od sprzętu atakującego, kosztu hasha, reguł mutacji, słowników i tego, ile formatu hasła atakujący zna.
 
-## Quick Start
+## Wymagania
+
+- Node.js 18+ (LTS)
+- npm
+
+## Uruchomienie Lokalne
+
+### 1. Instalacja zależności
 
 ```bash
-git clone git@github.com:p4b1o/diceware-io.git
-cd diceware-io
-
-python3 -m venv .venv
-source .venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+npm install
 ```
 
-Otwórz:
-
-```text
-http://localhost:8000
-```
-
-Wymuszenie języka:
-
-```text
-http://localhost:8000/?lang=pl
-http://localhost:8000/?lang=en
-```
-
-## Docker
+### 2. Uruchomienie w trybie deweloperskim
 
 ```bash
-docker build -t cyberguru-diceware .
-docker run -d \
-  --name diceware \
-  --restart unless-stopped \
-  -p 8000:8000 \
-  cyberguru-diceware
+npm run dev
 ```
 
-Aplikacja będzie dostępna pod:
+Aplikacja będzie dostępna pod `http://localhost:3300`.
 
-```text
-http://localhost:8000
+### 3. Budowanie do produkcji
+
+```bash
+npm run build
 ```
 
-Przykład dla reverse proxy na VPS:
+Zostanie stworzony folder `build/` z gotowymi do deploymentu plikami statycznymi, które nalezy przenieść na serwer razem z package.json i package-lock.json.
 
-```text
-diceware.io -> reverse proxy -> 127.0.0.1:8000 -> FastAPI container
-```
+## Wymuszenie Języka
 
-## Wykrywanie Języka
+Język można wymusić parametrem URL:
 
-Język można wymusić parametrem:
-
-```text
-/?lang=pl
-/?lang=en
+```bash
+http://localhost:3300/?lang=pl
+http://localhost:3300/?lang=en
 ```
 
 Bez parametru aplikacja sprawdza nagłówki kraju ustawiane przez proxy/CDN:
@@ -189,15 +170,47 @@ Bez parametru aplikacja sprawdza nagłówki kraju ustawiane przez proxy/CDN:
 - `X-Country-Code`
 - `X-Appengine-Country`
 
-`PL` renderuje wersję polską. Każdy inny kraj dostaje wersję angielską. Lokalnie (`127.0.0.1`) domyślnie używana jest wersja polska.
+`PL` renderuje wersję polską. Każdy inny kraj dostaje wersję angielską.
+
+## Docker
+
+```bash
+npm run build
+docker build -t cyberguru-diceware .
+docker run -d \
+  --name diceware \
+  --restart unless-stopped \
+  -p 8000:8000 \
+  cyberguru-diceware
+```
+
+Aplikacja będzie dostępna pod `http://localhost:8000`.
+
+## Deployment
+
+### 1. Zbuduj aplikację
+
+```bash
+npm run build
+```
+
+Powstanie folder `build/` z gotowymi, statycznymi plikami, które nalezy przenieść na serwer razem z package.json i package-lock.json.
+
+### 2. Konfiguracja na serwerze
+
+Przed uruchomieniem aplikacji należy uruchomić komendę `npm install`, która zainstaluje zależności, które nie są częścią bundle. 
+
+### 3. Uruchomienie aplikacji
+
+Aplikację nalezy uruchamiać z node polceniem `node /build`. Jeśli chcemy uruchomić ją na innym porcie niż default należy dodać --PORT.
 
 ## Słowniki
 
-Pliki słowników:
+Pliki słowników znajdują się w `static/wordlists/`:
 
 ```text
-app/static/wordlists/diceware-pl.txt
-app/static/wordlists/diceware-en.txt
+static/wordlists/diceware-pl.txt
+static/wordlists/diceware-en.txt
 ```
 
 Obsługiwany format:
@@ -214,57 +227,93 @@ W repozytorium są dwa słowniki:
 - `diceware-pl.txt` — polski słownik roboczy, około 3900 pozycji.
 - `diceware-en.txt` — angielska lista EFF, 7776 pozycji.
 
-Po podmianie słownika zaktualizuj `CACHE_NAME` w `app/static/js/sw.js`, żeby przeglądarki pobrały nową wersję plików.
+Po podmianie słownika uruchom ponownie dev server lub zbuduj produkcję. Service Worker automatycznie pobierze nową wersję plików.
 
 ## Struktura Projektu
 
 ```text
-app/
-  main.py
-  templates/
-    index.html
-  static/
-    css/
-      style.css
-    js/
-      app.js
-      sw.js
-    img/
-    wordlists/
-      diceware-pl.txt
-      diceware-en.txt
-Dockerfile
-requirements.txt
-README.md
+diceware-io/
+├── src/                                # SvelteKit frontend
+│   ├── app.html                        # Szablon HTML
+│   ├── app.css                         # Globalne style
+│   ├── routes/
+│   │   ├── +layout.server.ts           # Layout serwera
+│   │   ├── +layout.svelte              # Layout komponentu
+│   │   ├── +page.svelte                # Strona główna
+│   │   ├── +page.ts                    # Server load
+│   │   └── Home/
+│   │       ├── Home.svelte             # Główny komponent
+│   │       ├── app.ts                  # Logika aplikacji
+│   │       └── ui/                     # Komponenty UI
+│   │           ├── Generator.svelte    # Generator haseł
+│   │           ├── PasswordQuality.svelte
+│   │           ├── CrackTime.svelte
+│   │           ├── Settings.svelte
+│   │           └── generator.store.ts  # Svelte Store dla generatora
+│   ├── lib/
+│   │   ├── components/                 # Komponenty UI
+│   │   ├── stores/                     # Svelte Stores (język, toast, itd)
+│   │   ├── types/                      # TypeScript typy
+│   │   ├── utils/                      # Funkcje pomocnicze
+│   │   ├── constans/                   # Stałe aplikacji
+│   │   ├── translations.ts             # Słownik tłumaczeń
+│   │   └── images/                     # Obrazy
+│   └── app.d.ts                        # TypeScript deklaracje
+├── static/                             # Statyczne pliki
+│   ├── img/                            # Obrazy
+│   ├── js/
+│   │   ├── app.js                      # App-specific JS
+│   │   └── sw.js                       # Service Worker
+│   └── wordlists/                      # Słowniki Diceware
+│       ├── diceware-pl.txt             # Polski słownik
+│       └── diceware-en.txt             # Angielski słownik
+├── build/                              # Zbudowany frontend (gitignore)
+├── package.json
+├── svelte.config.js
+├── vite.config.ts
+├── tsconfig.json
+└── README.md
 ```
-
-## Roadmap
-
-- Dodać testy jednostkowe dla parsera słowników i wyboru języka.
-- Dodać pełniejszą, zweryfikowaną polską listę Diceware 7776 słów.
-- Dodać opcjonalny tryb PWA z manifestem i ikonami instalacji.
-- Dodać workflow CI dla lintingu i smoke testu Dockera.
-- Dodać screenshoty/GIF do README po przygotowaniu finalnych grafik.
 
 ## Przydatne Komendy
 
 ```bash
-# lokalny dev server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Lokalny dev server
+npm run dev
 
-# produkcyjny smoke test
-curl -I https://diceware.io
+# Budowanie do produkcji
+npm run build
 
-# rebuild obrazu
+# Podgląd produkcji lokalnie
+npm run preview
+
+# Linting i type-checking
+npm run lint
+npm run check
+
+# Rebuild obrazu Docker
 docker build -t cyberguru-diceware .
+
+# Produkcyjny smoke test
+curl -I https://diceware.io
 ```
+
+## Roadmap
+
+- [ ] Pełniejsza, zweryfikowana polska lista Diceware 7776 słów
+- [ ] Testy jednostkowe dla logiki generatora
+- [ ] PWA manifest i ikony instalacji
+- [ ] CI/CD workflow dla deploymentu
+- [ ] Wsparcie dla więcej kombinacji oddzielacza
+- [ ] Tematy ciemny/jasny z persystencją
+- [ ] Eksport haseł do różnych formatów
 
 ## Autor
 
-Projekt tworzony przez [Pawła Hordyńskiego](https://github.com/p4b1o) dla [diceware.io](https://diceware.io).
+Projekt tworzony dla [diceware.io](https://diceware.io).
 
 Kontakt: [sklep@pawelhordynski.com](mailto:sklep@pawelhordynski.com)
 
 ## Licencja
 
-© 2026 Paweł Hordyński / CyberGuru. Wszelkie prawa zastrzeżone, chyba że w repozytorium zostanie dodany osobny plik licencji.
+© 2026 CyberGuru. Wszelkie prawa zastrzeżone, chyba że w repozytorium zostanie dodany osobny plik licencji.
