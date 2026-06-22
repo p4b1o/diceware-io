@@ -69,7 +69,6 @@
 <div class="container">
   <div class="home">
     <div class="home__heading">
-      <span class="badge">{$translationsStore.badge}</span>
       <h1 class="hero__title">
         {$translationsStore.hero_title_main}<br /><span class="hero__accent">{$translationsStore.hero_title_accent}</span>
       </h1>
@@ -125,7 +124,7 @@
   </div>
 
   <section class="content-grid">
-    <div class="container content-grid__inner">
+    <div class="content-grid__inner">
       <div class="portrait-wrap">
         <img src="/img/pawel.jpg" alt="Paweł Hordyński — CyberGuru" class="portrait" width="400" height="500" loading="lazy" />
       </div>
